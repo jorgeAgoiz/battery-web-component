@@ -8,8 +8,8 @@ class BatteryInfo extends HTMLElement {
   getStyles() {
     return `
     .battery {
-        width: ${this.getAttribute("width")};
-        height: ${this.getAttribute("height")};
+        width: ${this.width}px;
+        height: ${this.height}px;
         color: black;
         display: flex;
         flex-direction: column;
@@ -52,7 +52,6 @@ class BatteryInfo extends HTMLElement {
   }
 
   listenLevel() {
-    console.log({battery: this.batteryInfo})
     const percentage = Math.round(this.batteryInfo.level * 100)
     this.chargeLevel.style.height = `${3.34 * percentage}px`;
     this.chargeLevel.textContent = `${percentage}%`;
@@ -75,6 +74,8 @@ class BatteryInfo extends HTMLElement {
   }
 
   connectedCallback() {
+    this.width = this.getAttribute("width")
+    this.height = this.getAttribute("height")
     window?.navigator
       ?.getBattery()
       .then((battery) => {
@@ -104,6 +105,7 @@ class BatteryInfo extends HTMLElement {
                 <div class="battery__charge"></div>
             </div>
         </div>
+        <slot name="footer"></slot>
     `;
   }
 }
