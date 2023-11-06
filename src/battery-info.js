@@ -1,4 +1,4 @@
-class BatteryInfo extends HTMLElement {
+export class BatteryInfo extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
@@ -7,9 +7,18 @@ class BatteryInfo extends HTMLElement {
 
   getStyles() {
     return `
-    .battery {
+      :host {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
         width: ${this.width}px;
         height: ${this.height}px;
+      }
+
+      .battery {
+        width: 100%;
+        height: 100%;
         color: black;
         display: flex;
         flex-direction: column;
@@ -18,18 +27,18 @@ class BatteryInfo extends HTMLElement {
       }
       
       .battery .battery__head {
-        height: 20px;
-        width: 40px;
+        height: ${this.headHeight}px;
+        width: 30%;
         background-color: rgb(72, 72, 72);
         border-top-left-radius: 6px;
         border-top-right-radius: 6px;
       }
       
       .battery .battery__body {
-        background-color: rgb(242, 207, 161);
+        background-color: rgb(234, 251, 253);
         border-radius: 12px;
         border: 3px solid grey;
-        height: 334px;
+        height: ${this.bodyHeight}px;
         width: 100%;
         display: flex;
         flex-direction: column;
@@ -37,7 +46,7 @@ class BatteryInfo extends HTMLElement {
         align-items: center;
       }
       
-      .battery__body .battery__charge {
+      .battery__body .charge {
         width: 100%;
         color: black;
         display: flex;
@@ -47,13 +56,16 @@ class BatteryInfo extends HTMLElement {
         border-bottom-right-radius: 8px;
         border-top-right-radius: 8px;
         border-top-left-radius: 8px;
+        font-size: ${this.height / 8}px;
       }
     `;
   }
 
   listenLevel() {
     const percentage = Math.round(this.batteryInfo.level * 100)
-    this.chargeLevel.style.height = `${3.34 * percentage}px`;
+    const chargeOnPx = this.bodyHeight / 100
+
+    this.chargeLevel.style.height = `${chargeOnPx * percentage}px`;
     this.chargeLevel.textContent = `${percentage}%`;
   }
 
@@ -62,13 +74,15 @@ class BatteryInfo extends HTMLElement {
     if(isCharging) {
       this.chargeLevel.style.backgroundColor = '#71f47c'
     } else {
-      this.chargeLevel.style.backgroundColor = '#d3f471'
+      this.chargeLevel.style.backgroundColor = '#FDC1C1'
     }
   }
 
   getInitialCharge() {
     const percentage = Math.round(this.batteryInfo?.level * 100)
-    this.chargeLevel.style.height = `${3.34 * percentage}px`;
+    const chargeOnPx = this.bodyHeight / 100
+    
+    this.chargeLevel.style.height = `${chargeOnPx * percentage}px`;
     this.chargeLevel.textContent = `${percentage}%`;
     this.chargeLevel.style.backgroundColor = this.batteryInfo.charging ? '#71f47c' : '#d3f471'
   }
@@ -76,6 +90,8 @@ class BatteryInfo extends HTMLElement {
   connectedCallback() {
     this.width = this.getAttribute("width")
     this.height = this.getAttribute("height")
+    this.headHeight = this.getAttribute("height") / 12
+    this.bodyHeight = (this.getAttribute("height") / 12) * 11
     window?.navigator
       ?.getBattery()
       .then((battery) => {
@@ -85,10 +101,10 @@ class BatteryInfo extends HTMLElement {
       .then(() => {
         this.batteryInfo.addEventListener("levelchange",this.listenLevel.bind(this));
         this.batteryInfo.addEventListener('chargingchange', this.listenCharge.bind(this))
-        this.chargeLevel = this.shadowRoot.querySelector('div.battery__charge')
+        this.chargeLevel = this.shadowRoot.querySelector('div.charge')
         this.chargeContainer = this.shadowRoot.querySelector('div.battery__body')
-        this.getInitialCharge()
-      });
+        this.getInitialCharge() 
+      })
   }
 
   disconnectedCallback() {
@@ -102,7 +118,7 @@ class BatteryInfo extends HTMLElement {
         <div class="battery">
             <div class="battery__head"></div>
             <div class="battery__body">
-                <div class="battery__charge"></div>
+                <div class="charge"></div>
             </div>
         </div>
         <slot name="footer"></slot>
